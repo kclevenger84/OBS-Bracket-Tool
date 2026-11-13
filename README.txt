@@ -1,4 +1,4 @@
-BRACKET TOOL v2 - SETUP AND USE
+BRACKET TOOL - SETUP AND USE
 ===============================
 
 One tool for showing a tournament bracket in OBS, controlled from a dock
