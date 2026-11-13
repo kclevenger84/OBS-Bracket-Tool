@@ -25,26 +25,12 @@ It has two safety nets:
 The EsportsDash dashboard still runs everything else (scoreboard, heroes,
 maps, colors, logos).
 
-WHAT'S NEW IN v2
-----------------
-Manual brackets are no longer limited to 4 or 8 teams. You enter the number
-of teams, pick the bracket type and enter the teams in seed order; the
-bracket is drawn from that. Everything else (start.gg / Challonge links,
-slots, rotation, overrides, the safety net) is the same as "Bracket Tool".
-
-v2 is completely separate from the "Bracket Tool" folder. It uses its own
-port (8094 instead of 8093), its own overlay page (bracket-tool-v2.html)
-and its own saved data, so both can be installed on the same computer. The
-older "Bracket Controller" folders and "StartGG Bracket" are not changed
-either.
-
-
 WHAT'S IN THIS FOLDER
 ---------------------
-  Start Bracket Tool v2.bat       Double-click to start the tool.
-  bracket-tool-v2-server.js    The program (don't edit).
+  Start Bracket Tool.bat       Double-click to start the tool.
+  bracket-tool-server.js       The program (don't edit).
   dock.html                    The panel shown in the OBS dock.
-  overlay\bracket-tool-v2.html    The bracket overlay page. It gets copied into
+  overlay\bracket-tool.html    The bracket overlay page. It gets copied into
                                the EsportsDash app (Setup step 4).
   overlay\fonts\               The font the overlay uses.
   logos\                       Team logos for manual brackets. Uploads land
@@ -65,14 +51,14 @@ Do these steps in order. Step 4 needs the folder that step 1 creates.
      - Go to https://nodejs.org
      - Download the "LTS" version and install it with the default options.
 
-3. Copy this whole "Bracket Tool v2" folder to the computer. Anywhere is fine,
+3. Copy this whole "Bracket Tool" folder to the computer. Anywhere is fine,
    for example the Desktop.
 
 4. Copy the overlay page into the EsportsDash app:
      a. Open File Explorer, click in the address bar, paste this and press
         Enter:
           %APPDATA%\esportsdashboard\uploads\overlays\esportsdash.default\html
-     b. Copy overlay\bracket-tool-v2.html from this folder into that folder.
+     b. Copy overlay\bracket-tool.html from this folder into that folder.
         (Don't replace or delete anything that is already there.)
 
    This is what makes the safety net work: the page lives in the app, so it
@@ -80,24 +66,24 @@ Do these steps in order. Step 4 needs the folder that step 1 creates.
 
 5. In OBS, add the dock:
      - Top menu: Docks -> Custom Browser Docks...
-     - Dock Name: Bracket Tool v2
+     - Dock Name: Bracket Tool
      - URL:       http://127.0.0.1:8094/
      - Click Apply, then Close. Drag the dock wherever you want it.
 
 6. In OBS, point the "HTML Bracket" browser source at the new page
    (right-click it -> Properties):
      - Local file:  UNCHECKED
-     - URL:         http://localhost:8081/overlays/esportsdash.default/html/bracket-tool-v2.html
+     - URL:         http://localhost:8081/overlays/esportsdash.default/html/bracket-tool.html
                     (make sure it starts with http:// - two slashes)
      - Width:       1920
      - Height:      1080
      - Click "Refresh cache of current page", then OK.
 
    To go back to an older bracket page, change the end of the URL to
-   bracket-tool.html, bracket-controller-v2.html, bracket-controller.html
+   bracket-tool.html, bracket-controller.html, bracket-controller.html
    or bracket.html.
 
-Moving over from Bracket Tool or Bracket Controller v2: teams and scores
+Moving over from Bracket Tool or Bracket Controller: teams and scores
 are not carried over. Copy your logo files from the old "logos" folder into
 this "logos" folder and enter the teams again on the Teams tab, in seed
 order (see Manual bracket below - the order means something different now).
@@ -106,7 +92,7 @@ order (see Manual bracket below - the order means something different now).
 EVERY STREAM
 ------------
 1. Start the EsportsDash app.
-2. Double-click "Start Bracket Tool v2.bat". Leave the black window open while
+2. Double-click "Start Bracket Tool.bat". Leave the black window open while
    streaming. Closing it stops the tool.
 3. Open OBS.
 
@@ -165,7 +151,7 @@ Teams tab
     it)" if it skips a round.
   - Pick a logo from the list, or click Upload to add one.
 
-  This is different from Bracket Tool and Bracket Controller v2, where
+  This is different from Bracket Tool and Bracket Controller, where
   teams 1 & 2 played each other in the first round.
 
 Matches tab
@@ -232,7 +218,7 @@ Bracket tab
     One OBS source per bracket
       Add ?slot=NUMBER to the end of the overlay URL to make a source that
       always shows that slot, whatever the dock is set to. For slot 2:
-        http://localhost:8081/overlays/esportsdash.default/html/bracket-tool-v2.html?slot=2
+        http://localhost:8081/overlays/esportsdash.default/html/bracket-tool.html?slot=2
       Make one browser source (or scene) per bracket and cut between them
       in OBS. These sources keep working while the main overlay shows the
       manual bracket.
@@ -339,8 +325,8 @@ Overlay shows the wrong bracket (8 teams you didn't enter)
 Overlay is empty
   - Check the dock: is the right source green at the top? For a link, is a
     bracket loaded with a green bar?
-  - Make sure the OBS source URL ends in bracket-tool-v2.html (step 6) and
-    that bracket-tool-v2.html is in the app's html folder (step 4). If
+  - Make sure the OBS source URL ends in bracket-tool.html (step 6) and
+    that bracket-tool.html is in the app's html folder (step 4). If
     EsportsDash reinstalls its overlay pack it may remove it. Just do step
     4 again.
   - In OBS, open the HTML Bracket source properties and click "Refresh
