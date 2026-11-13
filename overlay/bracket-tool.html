@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>Bracket Tool v2</title>
+  <style>
+    /* The font is looked for next to this page first (the EsportsDash app's html folder has it),
+       then from the Bracket Tool server. */
+    @font-face {
+      font-family: 'Rajdhani';
+      src: url("fonts/Rajdhani/Rajdhani-Bold.ttf") format('truetype'),
+        url("http://127.0.0.1:8094/fonts/Rajdhani-Bold.ttf") format('truetype');
+      font-weight: bold;
+    }
+
+    @font-face {
+      font-family: 'Rajdhani';
+      src: url("fonts/Rajdhani/Rajdhani-Regular.ttf") format('truetype'),
+        url("http://127.0.0.1:8094/fonts/Rajdhani-Regular.ttf") format('truetype');
+      font-weight: normal;
+    }
+
+    @keyframes cardanimate {
+      0% {
+        clip-path: polygon(0% 0, 0 0%, 0% 100%, 0% 100%);
+        transform: translateX(30%);
+      }
+
+      100% {
+        clip-path: polygon(0% 0, 100% 0%, 100% 100%, 0% 100%);
+        transform: translateX(0%);
+      }
+    }
+
+    @keyframes fadeanimate {
+      0% {
+        opacity: 0;
+      }
+
+      100% {
+        opacity: 1;
+      }
+    }
+
+    @keyframes headeranimate {
+      0% {
+        transform: translateX(120%);
+      }
+
+      100% {
+        transform: translateX(0%);
+      }
+    }
+
+    @keyframes slideleft {
+      0% {
+        transform: translateX(100%);
+      }
+
+      100% {
+        transform: translateX(0px);
+      }
+    }
+
+    @keyframes livepulse {
+      0%, 100% {
+        box-shadow: 0 0 0 0 var(--live);
+      }
+
+      50% {
+        box-shadow: 0 0 calc(var(--u) * 0.5) 0 var(--live);
+      }
+    }
+
+    body {
+      /* Theme colors. Replaced by the EsportsDash dashboard colors when it is running. */
+      --c1: #000000; /* match card */
+      --c2: #ffffff; /* team name */
+      --c3: #8cba11; /* accent: winner, lines */
+      --c4: #1c1c1c; /* score box */
+      --c5: #ffffff; /* title + round names */
+      --c6: #8cba11; /* message above the title */
+      --live: #ff4040; /* match being played right now */
+
+      width: 1920px;
+      height: 1080px;
+      margin: 0px auto;
+      overflow: hidden;
+      background-color: rgba(0, 0, 0, 0); /* transparent: sits over the stream */
+      color: white;
+      font-family: 'Rajdhani', 'Segoe UI', sans-serif;
+      text-transform: uppercase;
+    }
+
+    /* Title block, top right. The bracket starts underneath it. */
+    .header {
+      position: absolute;
+      right: 40px;
+      top: 22px;
+      height: 110px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      text-align: right;
+    }
+
+    .info {
+      font-size: 30px;
+      line-height: 30px;
+      color: var(--c6);
+      white-space: nowrap;
+      animation: headeranimate 0.5s;
+      animation-fill-mode: backwards;
+      animation-delay: 1s;
+    }
+
+    .title {
+      font-size: 76px;
+      line-height: 76px;
+      font-weight: bold;
+      color: var(--c5);
+      white-space: nowrap;
+      animation: headeranimate 0.5s;
+      animation-fill-mode: backwards;
+      animation-delay: 1.2s;
+    }
+
+    /* The bracket. Everything in it is placed by the script (left / top / width):
+       one column per round, earliest round on the left, each match half way between the two
+       matches that feed it, joined by lines. Sizes all come from --u, the height of one team
+       row, which the script picks so the whole bracket fits the screen. */
+    .wrapper {
+      --u: 60px;
+      --font: 28px;
+      position: absolute;
+      left: 0px;
+      top: 0px;
+      width: 1920px;
+      height: 1080px;
+      font-size: var(--font);
+    }
+
+    /* Round name above a column */
+    .roundtitle {
+      position: absolute;
+      height: calc(var(--u) * 1.3);
+      line-height: calc(var(--u) * 1.3);
+      text-align: center;
+      white-space: nowrap;
+      font-size: 0.92em;
+      font-weight: bold;
+      letter-spacing: 0.03em;
+      color: var(--c5);
+      text-shadow: 0 0 4px rgba(0, 0, 0, 0.9), 0 0 2px rgba(0, 0, 0, 0.9); /* readable over video */
+      animation: fadeanimate 0.5s;
+      animation-fill-mode: backwards;
+      animation-delay: 0.9s;
+    }
+
+    /* One match: a card with two team rows. Every card is the same size. */
+    .match {
+      position: absolute;
+      height: calc(var(--u) * 2);
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      background-color: var(--c1);
+      border-left: calc(var(--u) * 0.12) solid var(--c3);
+      transition: opacity 0.3s;
+      animation: cardanimate 0.35s;
+      animation-fill-mode: backwards;
+    }
+
+    /* Grand final reset that won't be played */
+    .match.notneeded,
+    .roundtitle.notneeded {
+      opacity: 0;
+    }
+
+    .team {
+      flex: 1 1 0;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      color: var(--c2);
+      overflow: hidden;
+    }
+
+    .team + .team {
+      border-top: 1px solid rgba(255, 255, 255, 0.25);
+    }
+
+    .team.winner {
+      background-color: var(--c3);
+      color: var(--c1);
+    }
+
+    .teamlogo {
+      height: calc(var(--u) * 0.8);
+      width: calc(var(--u) * 0.8);
+      margin-left: calc(var(--u) * 0.2);
+      flex: none;
+      object-fit: contain;
+    }
+
+    .team.nologo .teamlogo {
+      display: none;
+    }
+
+    /* team name on the left... */
+    .teamname {
+      flex: 1 1 auto;
+      min-width: 0;
+      padding: 0 calc(var(--u) * 0.3);
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* not decided yet */
+    .team.tbd .teamname {
+      opacity: 0.55;
+    }
+
+    /* ...score on the right */
+    .teamscore {
+      flex: none;
+      width: calc(var(--u) * 1.5);
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15em;
+      font-weight: bold;
+      background-color: var(--c4);
+      color: var(--c2);
+    }
+
+    .team.winner .teamscore {
+      color: var(--c3);
+    }
+
+    .teamscore.small {
+      font-size: 0.85em; /* "DQ" */
+    }
+
+    /* Match being played right now: red frame that pulses, and a LIVE tag on the corner */
+    .match.is-live {
+      outline: max(2px, calc(var(--u) * 0.07)) solid var(--live);
+      outline-offset: 1px;
+      animation: cardanimate 0.35s backwards, livepulse 1.6s ease-in-out 2s infinite;
+    }
+
+    .livetag {
+      display: none;
+      position: absolute;
+      right: calc(var(--u) * 1.6);
+      top: 0;
+      transform: translateY(-55%);
+      padding: 0 calc(var(--u) * 0.2);
+      font-size: max(9px, calc(var(--u) * 0.3));
+      line-height: 1.35;
+      font-weight: bold;
+      letter-spacing: 0.06em;
+      background-color: var(--live);
+      color: #ffffff;
+      z-index: 2;
+    }
+
+    .match.is-live .livetag {
+      display: block;
+    }
+
+    /* The lines that show where each winner goes */
+    .lines {
+      position: absolute;
+      left: 0px;
+      top: 0px;
+      overflow: visible;
+      pointer-events: none;
+      animation: fadeanimate 0.6s;
+      animation-fill-mode: backwards;
+    }
+
+    .lines path {
+      fill: none;
+      stroke: var(--c3);
+      stroke-linejoin: miter;
+    }
+
+    .footer {
+      position: fixed;
+      left: 0px;
+      top: 950px;
+      width: 1870px;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      padding: 25px;
+      z-index: -1;
+    }
+
+    .channel {
+      flex: 1 1 0;
+      height: 80px;
+      background-position: right;
+      background-size: contain;
+      background-repeat: no-repeat;
+      animation: slideleft 1s;
+      animation-fill-mode: backwards;
+      animation-delay: 1s;
+    }
+  </style>
+  <script>
+    // The Bracket Tool. This page normally shows whatever the dock is set to. Add ?slot=2 to
+    // the page address to always show linked bracket slot 2 instead (one OBS source per bracket).
+    const PAGE_OPTIONS = new URLSearchParams(window.location.search);
+    const SLOT = parseInt(PAGE_OPTIONS.get("slot"), 10) || 0;
+    const TOOL_URL = "http://127.0.0.1:8094/api/bracket" + (SLOT ? "?slot=" + SLOT : "");
+    const DASHBOARD = "http://localhost:8080"; // EsportsDash app: colors, message, logo and the fallback bracket
+    const DASHBOARD_FILES = "http://localhost:8081/";
+
+    // Safety net: if the Bracket Tool isn't running, the EsportsDash app's own bracket
+    // (8 teams, single elimination) is shown instead. Wins needed to take a match there:
+    // add ?wins=3 to the page address for Bo5, ?wins=4 for Bo7.
+    const FALLBACK_WINS = parseInt(PAGE_OPTIONS.get("wins"), 10) || 2;
+    const FALLBACK_FEEDERS = { sfm1: ["qfm1", "qfm2"], sfm2: ["qfm3", "qfm4"], gf1m1: ["sfm1", "sfm2"] }; // [top row, bottom row]
+
+    // The part of the screen the bracket may use: the same margin left, right and bottom,
+    // and the title's height kept free at the top.
+    const AREA = { left: 40, top: 140, width: 1840, height: 900 };
+
+    // Sizes of the bracket parts, measured in team rows (1 = the height of one team row).
+    const CARD = 2;          // a match card: two team rows
+    const GAP = 0.4;         // smallest space between two cards in a column
+    const HEAD = 1.3;        // round name above a column
+    const SIDE_GAP = 0.9;    // between the winners bracket and the losers bracket
+    const FINAL_GAP = 1.7;   // between the final and the 3rd place / reset card (holds its name)
+    const JOIN = 0.7;        // space between columns, where the lines run
+    const MAX_ROW = 64;      // a team row is never taller than this (pixels)
+    const NAME_ROOM = 5;     // a card is never narrower than this many rows
+
+    let currentLayout = "";
+    let toolFailures = 0;
+    let everShown = false;
+
+    const escapeHtml = s => String(s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+    // Names are bold except for filler words, same as the other bracket overlays.
+    function highlightWords(name) {
+      const regex = /\b(gaming|team|e-?sports|house|academy|uni(?:versity)?|state|tech|and|the|of|eu)\b/gi;
+      return "<b>" + escapeHtml(name).replace(regex, "</b>$1<b>").replace(/&amp;|\|/g, "</b>$&<b>") + "</b>";
+    }
+
+    function matchElement(match, delay) {
+      const el = document.createElement("div");
+      el.className = "match";
+      el.dataset.match = match.id;
+      const team = n => `
+        <div class="team team${n} nologo">
+          <img class="teamlogo" alt="">
+          <span class="teamname"></span>
+          <span class="teamscore"></span>
+        </div>`;
+      el.innerHTML = `<span class="livetag">Live</span>${team(1)}${team(2)}`;
+      el.style.animationDelay = delay.toFixed(2) + "s"; // staggered entrance
+      // a logo that fails to load is hidden instead of showing a broken picture
+      el.querySelectorAll(".teamlogo").forEach(img => img.addEventListener("error", () => img.parentElement.classList.add("nologo")));
+      return el;
+    }
+
+    // Works out where the matches of one side (winners or losers) go, top to bottom.
+    // Positions are counted in cards: 0 is the top.
+    //   - A match with no earlier match feeding it takes the next free line.
+    //   - A match fed by two matches sits half way between them, so spacing doubles each round.
+    //   - A match fed by one match, whose other team starts there after a bye, is drawn as if
+    //     the missing first-round match existed: a line is left empty for it and the match
+    //     sits half way between that empty line and its feeder (above it if the bye team is
+    //     on the top row, below if on the bottom row).
+    //   - A match fed by one match, whose other team drops in from the upper bracket, stays
+    //     level with its feeder (a straight line).
+    // Returns the positions and the number of lines needed.
+    function layoutSide(columns) {
+      const columnOf = new Map(), byId = new Map();
+      columns.forEach((c, i) => c.matches.forEach(m => { columnOf.set(String(m.id), i); byId.set(String(m.id), m); }));
+      // per team row: the feeding match if it is on screen in an earlier column of this side
+      const feeders = m => [0, 1].map(row => {
+        const id = (m.from || [])[row];
+        return id != null && columnOf.has(String(id)) && columnOf.get(String(id)) < columnOf.get(String(m.id)) ? String(id) : null;
+      });
+      const feedsSomething = new Set();
+      byId.forEach(m => feeders(m).forEach(id => id && feedsSomething.add(id)));
+
+      const y = new Map();
+      let lines = 0;
+      const place = m => {
+        const id = String(m.id);
+        if (y.has(id)) return y.get(id);
+        const [first, second] = feeders(m);
+        const entry = m.entry || [];
+        let pos;
+        if (first && second) pos = (place(byId.get(first)) + place(byId.get(second))) / 2;
+        else if (first) pos = entry[1] === "seed" ? (place(byId.get(first)) + lines++) / 2 : place(byId.get(first));
+        else if (second) pos = entry[0] === "seed" ? (lines++ + place(byId.get(second))) / 2 : place(byId.get(second));
+        else pos = lines++;
+        y.set(id, pos);
+        return pos;
+      };
+      // start from the last round and work back, so the tree is laid out in bracket order
+      for (let i = columns.length - 1; i >= 0; i--) {
+        columns[i].matches.forEach(m => { if (!feedsSomething.has(String(m.id))) place(m); });
+      }
+      return { y, lines };
+    }
+    // Builds the empty cards, the round names and the lines. Only runs when the set of matches
+    // on screen changes, so the entrance animation plays once instead of every refresh.
+    function buildLayout(data) {
+      const wrapper = document.querySelector(".wrapper");
+      wrapper.innerHTML = "";
+
+      const top = layoutSide(data.winners), bottom = layoutSide(data.losers);
+      const sides = (top.lines ? 1 : 0) + (bottom.lines ? 1 : 0);
+      const sideColumns = Math.max(data.winners.length, data.losers.length);
+      const columns = sideColumns + (data.finals.length ? 1 : 0);
+      if (!columns) return;
+
+      // ---- how big can a team row be so that everything fits? ----
+      const sideRows = n => (n ? HEAD + n * (CARD + GAP) - GAP : 0);
+      const bracketRows = sideRows(top.lines) + sideRows(bottom.lines) + (sides === 2 ? SIDE_GAP : 0);
+      const finalsRows = data.finals.length ? HEAD + data.finals.length * CARD + (data.finals.length - 1) * FINAL_GAP : 0;
+      const tallest = Math.max(bracketRows, finalsRows);
+      const u = Math.min(MAX_ROW, AREA.height / tallest, AREA.width / (columns * (NAME_ROOM + JOIN)));
+      const join = Math.max(22, JOIN * u);
+      // cards are as wide as the columns allow (so names fit), up to a sensible maximum
+      const cardWidth = Math.min(Math.max(u * 7.5, 320), (AREA.width + join) / columns - join);
+      // text: about half a row, but never tiny - a dense bracket fills its rows with text
+      const font = Math.min(u * 0.78, Math.max(13, u * 0.46));
+      wrapper.style.setProperty("--u", u.toFixed(2) + "px");
+      wrapper.style.setProperty("--font", font.toFixed(1) + "px");
+
+      const pitch = (CARD + GAP) * u; // from the top of one card to the top of the next
+      const cardHeight = CARD * u, headHeight = HEAD * u;
+      const startX = AREA.left + (AREA.width - (columns * (cardWidth + join) - join)) / 2;
+      const leftOf = column => startX + column * (cardWidth + join);
+      const startY = AREA.top + (AREA.height - tallest * u) / 2;
+
+      // top of the winners cards, and of the losers cards underneath them
+      const topHead = startY, topStart = topHead + headHeight;
+      const bottomHead = top.lines ? topStart + top.lines * pitch - GAP * u + SIDE_GAP * u : startY;
+      const bottomStart = bottomHead + headHeight;
+
+      const total = data.winners.concat(data.losers).reduce((n, c) => n + c.matches.length, 0) + data.finals.length;
+      const step = Math.min(0.12, 2.2 / Math.max(1, total));
+      let order = 0;
+      const placed = new Map(); // match id -> { left, top } once it is on screen
+
+      const addMatch = (m, left, y) => {
+        const el = matchElement(m, 1 + step * order++);
+        el.style.left = left.toFixed(1) + "px";
+        el.style.top = y.toFixed(1) + "px";
+        el.style.width = cardWidth.toFixed(1) + "px";
+        wrapper.appendChild(el);
+        placed.set(String(m.id), { left, top: y });
+      };
+      const addTitle = (text, left, y, forMatch) => {
+        const el = document.createElement("span");
+        el.className = "roundtitle";
+        el.textContent = text;
+        el.style.left = left.toFixed(1) + "px";
+        el.style.top = y.toFixed(1) + "px";
+        el.style.width = cardWidth.toFixed(1) + "px";
+        if (forMatch !== undefined) el.dataset.titleFor = forMatch; // hidden together with that match
+        wrapper.appendChild(el);
+      };
+
+      // ---- one column per round, round name above the column ----
+      const addSide = (cols, side, head, start) => cols.forEach((c, i) => {
+        addTitle(c.title, leftOf(i), head);
+        c.matches.forEach(m => addMatch(m, leftOf(i), start + side.y.get(String(m.id)) * pitch));
+      });
+      addSide(data.winners, top, topHead, topStart);
+      addSide(data.losers, bottom, bottomHead, bottomStart);
+
+      // ---- last column: the final, level with the middle of the matches that feed it
+      //      (between the two semifinals, or between the upper and the lower final).
+      //      A 3rd place match or grand final reset goes underneath with its own name. ----
+      if (data.finals.length) {
+        const left = leftOf(sideColumns);
+        const block = data.finals.length * cardHeight + (data.finals.length - 1) * FINAL_GAP * u;
+        const from = (data.finals[0].from || []).filter(id => id != null).map(String).filter(id => placed.has(id));
+        let y = from.length
+          ? from.reduce((sum, id) => sum + placed.get(id).top, 0) / from.length
+          : startY + headHeight + (tallest * u - headHeight - block) / 2;
+        y = Math.max(startY + headHeight, Math.min(y, AREA.top + AREA.height - block)); // keep it all on screen
+        data.finals.forEach((m, i) => {
+          const cardY = y + i * (cardHeight + FINAL_GAP * u);
+          // the final's name lines up with the other round names; the others sit on their card
+          addTitle(m.label, left, i === 0 && sides ? startY : cardY - headHeight, i === 0 ? undefined : m.id);
+          addMatch(m, left, cardY);
+        });
+      }
+
+      // ---- lines: out of the right side of a match, across, then up or down and into the
+      //      left side of the match its winner goes to ----
+      const everyMatch = data.winners.concat(data.losers).flatMap(c => c.matches).concat(data.finals);
+      let path = "";
+      for (const m of everyMatch) {
+        const to = placed.get(String(m.id));
+        for (const id of (m.from || []).filter(id => id != null).map(String)) {
+          const from = placed.get(id);
+          if (!from || from.left >= to.left) continue;
+          const bend = to.left - join / 2;
+          path += `M${(from.left + cardWidth).toFixed(1)} ${(from.top + cardHeight / 2).toFixed(1)}` +
+            `H${bend.toFixed(1)}V${(to.top + cardHeight / 2).toFixed(1)}H${to.left.toFixed(1)}`;
+        }
+      }
+      if (path) {
+        const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+        svg.setAttribute("class", "lines");
+        svg.setAttribute("width", "1920");
+        svg.setAttribute("height", "1080");
+        svg.style.animationDelay = (1.3 + step * total).toFixed(2) + "s";
+        const line = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        line.setAttribute("d", path);
+        line.setAttribute("stroke-width", Math.max(2, u * 0.07).toFixed(1));
+        svg.appendChild(line);
+        wrapper.insertBefore(svg, wrapper.firstChild); // behind the cards
+      }
+    }
+
+    function fillMatch(match) {
+      const id = CSS.escape(String(match.id));
+      const el = document.querySelector(`.match[data-match="${id}"]`);
+      if (!el) return;
+      el.classList.toggle("notneeded", !!match.notNeeded);
+      el.classList.toggle("is-live", match.state === "live");
+      const title = document.querySelector(`.roundtitle[data-title-for="${id}"]`);
+      if (title) title.classList.toggle("notneeded", !!match.notNeeded);
+
+      [match.team1, match.team2].forEach((t, i) => {
+        const row = el.querySelector(".team" + (i + 1));
+        row.classList.toggle("winner", !!t.winner);
+        row.classList.toggle("tbd", !t.name);
+
+        const name = highlightWords(t.name || "TBD");
+        const nameEl = row.querySelector(".teamname");
+        if (nameEl.innerHTML !== name) nameEl.innerHTML = name;
+
+        const scoreEl = row.querySelector(".teamscore");
+        scoreEl.textContent = t.score;
+        scoreEl.classList.toggle("small", t.score.length > 1);
+
+        const logo = t.name ? t.logo || "" : "";
+        const img = row.querySelector(".teamlogo");
+        if (img.dataset.logo !== logo) {
+          img.dataset.logo = logo;
+          row.classList.toggle("nologo", !logo);
+          if (logo) img.src = logo; else img.removeAttribute("src");
+        }
+      });
+    }
+
+    function show(data) {
+      everShown = true;
+      const title = document.querySelector(".title");
+      if (title.textContent !== data.title) {
+        title.textContent = data.title;
+        // long titles shrink so they stay on one line
+        title.style.fontSize = data.title.length > 22 ? (76 * 22 / data.title.length).toFixed(0) + "px" : "";
+      }
+
+      const matches = data.winners.concat(data.losers).flatMap(c => c.matches).concat(data.finals);
+      const layout = JSON.stringify([data.winners, data.losers].map(side => side.map(c => [c.title, c.matches.map(m => [m.id, m.from, m.entry])])).concat([data.finals.map(m => [m.id, m.from, m.label])]));
+      if (layout !== currentLayout) {
+        buildLayout(data);
+        currentLayout = layout;
+      }
+      matches.forEach(fillMatch);
+    }
+
+    // ---- Safety net: the EsportsDash app's own bracket, in the shape show() expects ----
+    async function dashboardBracket() {
+      const d = await (await fetch(DASHBOARD + "/api/get-bracket", { cache: "no-store" })).json();
+      const score = t => Number(t && t.score) || 0;
+      const winnerOf = m => {
+        if (!m || !m.team1 || !m.team2) return 0;
+        const s1 = score(m.team1), s2 = score(m.team2);
+        return s1 >= FALLBACK_WINS && s1 > s2 ? 1 : s2 >= FALLBACK_WINS && s2 > s1 ? 2 : 0;
+      };
+
+      // The app has no 3rd place teams of its own: use the semifinal losers.
+      let third = d.b3m1 || {};
+      if (!(third.team1 && third.team1.name) && !(third.team2 && third.team2.name)) {
+        const loser = m => { const w = winnerOf(m); return w ? m["team" + (3 - w)] : null; };
+        const fill = (l, old) => (l ? { name: l.name, logo: l.logo, score: score(old) } : { name: "", logo: "", score: 0 });
+        third = { team1: fill(loser(d.sfm1), third.team1), team2: fill(loser(d.sfm2), third.team2) };
+      }
+
+      const match = (id, label, m) => {
+        m = m || {};
+        const w = winnerOf(m);
+        const blank = !score(m.team1) && !score(m.team2);
+        const team = (t, n) => ({ name: (t && t.name) || "", logo: (t && t.logo) || "", score: blank ? "" : String(score(t)), winner: w === n });
+        return { id, label, state: w ? "done" : "pending", from: FALLBACK_FEEDERS[id] || [], team1: team(m.team1, 1), team2: team(m.team2, 2) };
+      };
+      return {
+        title: typeof d.title === "string" && d.title ? d.title : "Playoffs",
+        winners: [
+          { title: "Quarterfinals", matches: [1, 2, 3, 4].map(n => match("qfm" + n, "Quarterfinal " + n, d["qfm" + n])) },
+          { title: "Semifinals", matches: [1, 2].map(n => match("sfm" + n, "Semifinal " + n, d["sfm" + n])) }
+        ],
+        losers: [],
+        finals: [match("gf1m1", "Grand Final", d.gf1m1), match("b3m1", "3rd Place", third)]
+      };
+    }
+
+    async function updateBracket() {
+      try {
+        const data = await (await fetch(TOOL_URL, { cache: "no-store" })).json();
+        toolFailures = 0;
+        show(data);
+        return;
+      } catch (e) {
+        toolFailures++;
+      }
+      // Bracket Tool not answering. Wait for a second miss before switching (unless nothing
+      // has been shown yet), so one hiccup doesn't swap the bracket on screen.
+      if (toolFailures < 2 && everShown) return;
+      try {
+        show(await dashboardBracket());
+      } catch (e) {
+        // the app isn't running either: keep showing what we have
+      }
+    }
+
+    // Colors, the message above the title and the corner logo come from the EsportsDash
+    // dashboard when it is running. Without it the default colors above are used.
+    async function updateTheme() {
+      try {
+        const abort = new AbortController();
+        setTimeout(() => abort.abort(), 2000);
+        const full = await (await fetch(DASHBOARD + "/getFullJson", { signal: abort.signal })).json();
+        const colors = full.general.color;
+        ["BGG_C1", "BGG_C2", "BGG_C3", "BGG_C4", "BGG_C5", "BGG_C6"].forEach((key, i) => {
+          if (colors[key] && colors[key].value) document.body.style.setProperty("--c" + (i + 1), colors[key].value);
+        });
+        document.querySelector(".info").textContent = full.general.text.Message.value || "";
+        const logo = full.general.file.BGG_L2;
+        if (logo && logo.value) {
+          document.querySelector(".channel").style.backgroundImage = `url("${DASHBOARD_FILES}${logo.value}")`;
+        }
+      } catch (e) {
+        // dashboard not running - keep the current look
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      updateTheme();
+      updateBracket();
+      setInterval(updateBracket, 2000); // local only; linked brackets are checked by the tool every 10 seconds
+      setInterval(updateTheme, 5000);
+    });
+  </script>
+</head>
+
+<body>
+  <div class="header">
+    <span class="info"></span>
+    <span class="title"></span>
+  </div>
+  <div class="wrapper"></div>
+  <div class="footer">
+    <div class="channel"></div>
+  </div>
+</body>
+
+</html>

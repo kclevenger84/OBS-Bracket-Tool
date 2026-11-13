@@ -1,0 +1,278 @@
+{
+  "source": "site",
+  "manual": {
+    "title": "Playoffs",
+    "teamCount": 8,
+    "type": "se3",
+    "teams": [
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      },
+      {
+        "name": "",
+        "logo": ""
+      }
+    ],
+    "scores": {
+      "w1m1": [
+        0,
+        0
+      ],
+      "w1m2": [
+        0,
+        0
+      ],
+      "w1m3": [
+        0,
+        0
+      ],
+      "w1m4": [
+        0,
+        0
+      ],
+      "w2m1": [
+        0,
+        0
+      ],
+      "w2m2": [
+        0,
+        0
+      ],
+      "w3m1": [
+        0,
+        0
+      ],
+      "b3": [
+        0,
+        0
+      ]
+    },
+    "bestOf": {
+      "early": 3,
+      "semi": 3,
+      "final": 5,
+      "third": 3,
+      "ub": 3,
+      "ubf": 3,
+      "lb": 3,
+      "lbf": 3,
+      "gf": 5
+    }
+  },
+  "slots": [
+    {
+      "id": 1,
+      "inRotation": true,
+      "tournamentName": "MOSEF 2026 Smash Solos: MS Championship",
+      "url": "https://www.start.gg/tournament/mosef-2026-smash-solos-ms-championship/event/section-playoffs/brackets/2360500/3408514",
+      "groupId": 3408514,
+      "title": "",
+      "view": "all",
+      "side": "both",
+      "showPrefix": true,
+      "eventName": "Section Playoffs",
+      "phaseName": "Section 1",
+      "choices": [
+        {
+          "id": 3408514,
+          "eventName": "Section Playoffs",
+          "phaseName": "Section 1",
+          "label": "Section Playoffs - Section 1"
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "id": 2,
+      "inRotation": true,
+      "tournamentName": "MOSEF 2026 Smash Solos: MS Championship",
+      "url": "https://www.start.gg/tournament/mosef-2026-smash-solos-ms-championship/event/section-playoffs/brackets/2360501/3408515",
+      "groupId": 3408515,
+      "title": "",
+      "view": "all",
+      "side": "both",
+      "showPrefix": true,
+      "eventName": "Section Playoffs",
+      "phaseName": "Section 2",
+      "choices": [
+        {
+          "id": 3408515,
+          "eventName": "Section Playoffs",
+          "phaseName": "Section 2",
+          "label": "Section Playoffs - Section 2"
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "id": 3,
+      "inRotation": true,
+      "tournamentName": "MOSEF 2026 Smash Solos: MS Championship",
+      "url": "https://www.start.gg/tournament/mosef-2026-smash-solos-ms-championship/event/section-playoffs/brackets/2360502/3408516",
+      "groupId": 3408516,
+      "title": "",
+      "view": "auto",
+      "side": "both",
+      "showPrefix": true,
+      "eventName": "Section Playoffs",
+      "phaseName": "Section 3",
+      "choices": [
+        {
+          "id": 3408516,
+          "eventName": "Section Playoffs",
+          "phaseName": "Section 3",
+          "label": "Section Playoffs - Section 3"
+        }
+      ],
+      "overrides": {}
+    },
+    {
+      "id": 4,
+      "inRotation": true,
+      "tournamentName": "MOSEF 2026 Smash Solos: MS Championship",
+      "url": "https://www.start.gg/tournament/mosef-2026-smash-solos-ms-championship/event/section-playoffs/brackets/2360503/3408517",
+      "groupId": 3408517,
+      "title": "",
+      "view": "auto",
+      "side": "both",
+      "showPrefix": true,
+      "eventName": "Section Playoffs",
+      "phaseName": "Section 4",
+      "choices": [
+        {
+          "id": 3408517,
+          "eventName": "Section Playoffs",
+          "phaseName": "Section 4",
+          "label": "Section Playoffs - Section 4"
+        }
+      ],
+      "overrides": {}
+    }
+  ],
+  "selected": 4,
+  "rotate": {
+    "on": true,
+    "seconds": 20
+  }
+}
